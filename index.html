@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel & VBA Code Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container { max-width: 100%; margin: 0 auto; padding: 40px 40px; }
+        header { text-align: center; margin-bottom: 40px; }
+
+        .header-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .header-bar h1 {
+            margin-bottom: 0;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle {
+            background: #333;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover { background: #444; transform: scale(1.1); }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle { color: #888; font-size: 1rem; }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 30px;
+            z-index: 100;
+        }
+
+        .search-results-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1e1e2e;
+            border: 1px solid #333;
+            border-radius: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .search-results-dropdown.show {
+            display: block;
+        }
+
+        #search {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 1.2rem;
+            border: 2px solid #333;
+            border-radius: 50px;
+            background: #222;
+            color: #fff;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #search:focus { border-color: #00d4ff; box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+
+        .locale-selector {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #222;
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            font-size: 0.85rem;
+        }
+
+        .locale-selector label {
+            color: #888;
+        }
+
+        .locale-selector select {
+            background: #333;
+            border: none;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .locale-selector select:focus {
+            border-color: #00d4ff;
+            outline: none;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            background: #333;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .tab.active {
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            color: #fff;
+        }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+
+        @media (max-width: 768px) {
+            .results { grid-template-columns: 1fr; }
+        }
+
+        .result-card {
+            background: #1e1e2e;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #333;
+            transition: all 0.3s;
+        }
+
+        .result-card:hover {
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-title { font-size: 1.1rem; color: #00d4ff; }
+
+        .add-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            background: #7b2cbf;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .add-btn:hover { background: #6a1fa0; }
+        .add-btn.added { background: #00ff88; color: #000; }
+
+        .result-desc { color: #888; margin-bottom: 15px; font-size: 0.9rem; }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            background: #333;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            color: #666;
+            margin-right: 5px;
+        }
+
+        .code-block {
+            background: #0d0d0d;
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .code-block pre {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            color: #a0a0a0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            background: #00d4ff;
+            color: #000;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .copy-btn:hover { background: #00b8e6; }
+        .copy-btn.copied { background: #00ff88; }
+
+        /* Combine Section */
+        .combine-section {
+            background: #1e1e2e;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #7b2cbf;
+            margin-bottom: 30px;
+        }
+
+        .combine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .combine-title {
+            font-size: 1.2rem;
+            color: #00d4ff;
+        }
+
+        .combine-count {
+            background: #7b2cbf;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .selected-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .selected-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #222;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .selected-item span { color: #aaa; font-size: 0.9rem; }
+
+        .reorder-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .reorder-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .reorder-btn:hover:not(:disabled) { background: #444; }
+
+        .remove-btn {
+            background: #ff4757;
+            color: #fff;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .combine-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .combine-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .combine-options label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .combine-options input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary { background: #00d4ff; color: #000; }
+        .btn-primary:hover { background: #00b8e6; }
+        .btn-secondary { background: #333; color: #fff; }
+        .btn-secondary:hover { background: #444; }
+        .btn-danger { background: #ff4757; color: #fff; }
+
+        .combined-result {
+            margin-top: 20px;
+            background: #0d0d0d;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .combined-result pre {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            color: #00ff88;
+        }
+
+        /* Builder Styles */
+        .builder-card {
+            background: #1e1e2e;
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid #333;
+        }
+
+        .builder-title {
+            font-size: 1.3rem;
+            color: #00d4ff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .builder-select {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: #222;
+            color: #fff;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .builder-inputs { display: flex; flex-direction: column; gap: 15px; }
+
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .input-group label { color: #00d4ff; font-weight: bold; font-size: 0.95rem; }
+        .input-group label.light-theme { color: #0066cc; }
+        .input-desc.light-theme { color: #666; }
+        .input-desc { color: #888; font-size: 0.8rem; font-style: italic; }
+
+        .input-group input, .input-group select {
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #222;
+            color: #fff;
+        }
+
+        .input-group input:focus { border-color: #00d4ff; outline: none; }
+
+        .builder-result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #0d0d0d;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .builder-result pre {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+            color: #00ff88;
+            word-wrap: break-word;
+        }
+
+        .builder-buttons { display: flex; gap: 10px; margin-top: 15px; }
+
+        .footer { text-align: center; margin-top: 50px; color: #444; font-size: 0.8rem; }
+        .no-results { text-align: center; color: #666; padding: 40px; }
+    body.light-theme { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #333; }
+        body.light-theme .result-card, body.light-theme .builder-card, body.light-theme .locale-selector, body.light-theme .combine-section { background: #fff; border-color: #ddd; }
+        body.light-theme .result-title { color: #0066cc; }
+        body.light-theme .result-desc { color: #666; }
+        body.light-theme .subtitle { color: #666; }
+        body.light-theme .tag { background: #e0e0e0; color: #555; }
+        body.light-theme .code-block { background: #1a1a1a; }
+        body.light-theme #search, body.light-theme .builder-select, body.light-theme .input-group input { background: #f5f5f5; border-color: #ccc; color: #333; }
+        body.light-theme .tabs .tab { background: #e0e0e0; color: #555; }
+        body.light-theme .tabs .tab.active { background: linear-gradient(90deg, #0066cc, #7b2cbf); color: #fff; }
+        body.light-theme .builder-title { color: #0066cc; }
+        body.light-theme .input-group label { color: #0066cc; }
+        body.light-theme .input-desc { color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header-bar">
+            <div>
+                <h1>Excel & VBA Code Generator</h1>
+                <p class="subtitle">Based on Microsoft's Official Documentation</p>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle Light/Dark Theme">🌙</button>
+        </header>
+
+        <div class="search-box">
+            <input type="text" id="search" placeholder="Search codes..." oninput="handleSearch(this.value)">
+            <div class="search-results-dropdown" id="searchDropdown"></div>
+        </div>
+
+        <div class="locale-selector">
+            <label>📐 Format:</label>
+            <select id="localeSelect" onchange="updateLocale()">
+                <option value=",">US/UK (,)</option>
+                <option value=";">EU (;)</option>
+            </select>
+            <span title="US=comma, EU=semicolon" style="color: #666; cursor: help; font-size: 0.8rem;">?</span>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="vba">VBA</button>
+            <button class="tab" data-tab="formula">Formulas</button>
+        </div>
+
+        <!-- Search Results Section -->
+        <div class="section active" id="section-search">
+            <div class="results" id="results"></div>
+        </div>
+
+        <!-- Combine Section -->
+        <div class="section" id="section-combine">
+            <div class="combine-section">
+                <div class="combine-header">
+                    <div class="combine-title">Selected Code Snippets</div>
+                    <div class="combine-count"><span id="selectedCount">0</span> selected</div>
+                </div>
+
+                <div class="selected-list" id="selectedList">
+                    <p style="color: #666; text-align: center; padding: 20px;">
+                        Click "Add to Combine" on any code snippet above to add it here.
+                    </p>
+                </div>
+
+                <div class="combine-buttons">
+                    <button class="btn btn-primary" onclick="combineCodes()">Combine & Generate</button>
+                    <button class="btn btn-danger" onclick="clearSelection()">Clear All</button>
+                </div>
+
+                <div class="combine-options">
+                    <label>
+                        <input type="radio" name="combineMode" value="single" checked>
+                        Combine into one Sub
+                    </label>
+                    <label>
+                        <input type="radio" name="combineMode" value="master">
+                        Master Sub calls each in order
+                    </label>
+                </div>
+
+                <div class="combined-result" id="combinedResult" style="display: none;">
+                    <pre id="combinedOutput"></pre>
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="copyCombined()">Copy Combined Code</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results" id="combineResults"></div>
+        </div>
+
+        <!-- Formula Builder Section -->
+        <div class="section" id="section-builder">
+            <div class="builder-card">
+                <div class="builder-title">Interactive Formula Builder</div>
+
+                <select class="builder-select" id="formulaType">
+                    <option value="">Select a formula to build...</option>
+                    <option value="if">IF - Conditional Value</option>
+                    <option value="sumif">SUMIF - Sum with Condition</option>
+                    <option value="countif">COUNTIF - Count with Condition</option>
+                    <option value="sum">SUM - Add Values</option>
+                    <option value="average">AVERAGE - Average Value</option>
+                    <option value="max">MAX - Maximum Value</option>
+                    <option value="min">MIN - Minimum Value</option>
+                    <option value="counta">COUNTA - Count Non-Empty</option>
+                    <option value="vlookup">VLOOKUP - Lookup Value</option>
+                    <option value="indexmatch">INDEX MATCH - Advanced Lookup</option>
+                    <option value="xlookup">XLOOKUP - Modern Lookup</option>
+                    <option value="concatenate">CONCATENATE - Join Text</option>
+                    <option value="text">TEXT - Format Value</option>
+                    <option value="networkdays">NETWORKDAYS - Work Days</option>
+                    <option value="datedif">DATEDIF - Date Difference</option>
+                    <option value="iferror">IFERROR - Error Handler</option>
+                    <option value="round">ROUND - Round Number</option>
+                    <option value="left">LEFT - Extract Left Characters</option>
+                    <option value="mid">MID - Extract Middle Characters</option>
+                    <option value="trim">TRIM - Remove Spaces</option>
+                    <option value="today">TODAY - Current Date</option>
+                    <option value="now">NOW - Current Date & Time</option>
+                </select>
+
+                <div class="builder-inputs" id="builderInputs">
+                    <p style="color: #666; text-align: center;">Select a formula above to start building</p>
+                </div>
+
+                <div class="builder-result" id="builderResult">
+                    <pre id="formulaOutput"></pre>
+                    <div class="builder-buttons">
+                        <button class="btn btn-primary" onclick="copyFormula()">Copy Formula</button>
+                        <button class="btn btn-secondary" onclick="resetBuilder()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formula Combine Section -->
+        <div class="section" id="section-formula-combine">
+            <div class="builder-card">
+                <div class="builder-title">Combine Formulas</div>
+                <p style="color: #888; text-align: center; margin-bottom: 20px;">Build nested formulas by combining multiple formulas together</p>
+
+                <div class="selected-list" id="formulaList" style="max-height: 150px; margin-bottom: 15px;">
+                    <p style="color: #666; text-align: center; padding: 15px;">Select formulas below to add</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="formulaCombineInput" placeholder="Or type a custom formula..."
+                           style="width: 100%; padding: 12px; border: 2px solid #333; border-radius: 8px; background: #222; color: #fff; font-family: monospace;">
+                </div>
+
+                <div class="builder-buttons">
+                    <button class="btn btn-primary" onclick="combineFormulas()">Combine Formulas</button>
+                    <button class="btn btn-danger" onclick="clearFormulaCombine()">Clear</button>
+                </div>
+
+                <div class="builder-result" id="formulaCombineResult" style="margin-top: 20px; display: none;">
+                    <pre id="formulaCombineOutput"></pre>
+                    <div class="builder-buttons">
+                        <button class="btn btn-primary" onclick="copyFormulaCombine()">Copy Combined</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Based on Microsoft's official Excel & VBA documentation</p>
+        </div>
+
+        <!-- Version: 1.0 -->
+    </div>
+
+    <script>
+        const codeExamples = [
+            // VBA Examples
+            { title: "Add Page Break at Specific Row", desc: "Adds a horizontal page break before a specific row", category: "vba", tags: ["print", "page break", "printing"], code: `Sub AddPageBreak()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+
+    ' Add page break before row 20
+    ws.HPageBreaks.Add Before:=ws.Rows(20)
+End Sub` },
+
+            { title: "Clear All Page Breaks", desc: "Removes all page breaks from the worksheet", category: "vba", tags: ["print", "page break", "clear"], code: `Sub ClearPageBreaks()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+
+    ws.PageSetup.PrintArea = ""
+    ws.ResetAllPageBreaks
+End Sub` },
+
+            { title: "Set Print Area", desc: "Sets the print area to specific columns and rows", category: "vba", tags: ["print", "area", "setup"], code: `Sub SetPrintArea()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+
+    ws.PageSetup.PrintArea = "$A$1:$K$50"
+End Sub` },
+
+            { title: "Loop Through Range", desc: "Iterate through each cell in a range", category: "vba", tags: ["loop", "range", "cells"], code: `Sub LoopThroughRange()
+    Dim cell As Range
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+
+    For Each cell In ws.Range("A1:A10")
+        Debug.Print cell.Value
+    Next cell
+End Sub` },
+
+            { title: "Find Last Row", desc: "Find the last row with data in a column", category: "vba", tags: ["last row", "range", "find"], code: `Sub FindLastRow()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Set ws = ActiveSheet
+
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+End Sub` },
+
+            { title: "Copy Row to Another Sheet", desc: "Copy a specific row to a different worksheet", category: "vba", tags: ["copy", "row", "sheet"], code: `Sub CopyRowToSheet()
+    Dim sourceWS As Worksheet
+    Dim targetWS As Worksheet
+    Set sourceWS = ThisWorkbook.Sheets("Sheet1")
+    Set targetWS = ThisWorkbook.Sheets("Sheet2")
+
+    sourceWS.Rows(1).Copy Destination:=targetWS.Rows(1)
+End Sub` },
+
+            { title: "Delete Empty Rows", desc: "Remove all empty rows from a worksheet", category: "vba", tags: ["delete", "empty", "rows"], code: `Sub DeleteEmptyRows()
+    Dim ws As Worksheet
+    Dim i As Long
+    Set ws = ActiveSheet
+
+    For i = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row To 2 Step -1
+        If Application.WorksheetFunction.CountA(ws.Rows(i)) = 0 Then
+            ws.Rows(i).Delete
+        End If
+    Next i
+End Sub` },
+
+            { title: "AutoFit Columns", desc: "Automatically adjust column widths", category: "vba", tags: ["columns", "autofit", "format"], code: `Sub AutoFitColumns()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+
+    ws.Range("A:K").EntireColumn.AutoFit
+End Sub` },
+
+            // More Popular VBA Examples
+            { title: "Save Workbook", desc: "Save the current workbook", category: "vba", tags: ["save", "file", "workbook"], code: `Sub SaveWorkbook()
+    ' ⚙️ CUSTOMIZE: Remove "Save" to save silently, or add path
+    ThisWorkbook.Save
+End Sub` },
+
+            { title: "Save Workbook As", desc: "Save workbook with new name", category: "vba", tags: ["save", "file", "workbook", "as"], code: `Sub SaveWorkbookAs()
+    Dim newName As String
+    newName = "Backup_" & Format(Date, "yyyy-mm-dd")
+    ' ⚙️ CUSTOMIZE: Change the file path and name
+    ThisWorkbook.SaveAs Filename:="C:\Folder\" & newName & ".xlsx"
+End Sub` },
+
+            { title: "Hide Sheet", desc: "Hide a specific worksheet", category: "vba", tags: ["hide", "sheet", "visible"], code: `Sub HideSheet()
+    Dim ws As Worksheet
+    ' ⚙️ CUSTOMIZE: Change "Sheet1" to your sheet name
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    ws.Visible = xlSheetHidden
+End Sub` },
+
+            { title: "Unhide All Sheets", desc: "Make all hidden sheets visible", category: "vba", tags: ["unhide", "sheet", "visible"], code: `Sub UnhideAllSheets()
+    Dim ws As Worksheet
+    For Each ws In ThisWorkbook.Worksheets
+        ws.Visible = xlSheetVisible
+    Next ws
+End Sub` },
+
+            { title: "Protect Sheet", desc: "Protect a worksheet with password", category: "vba", tags: ["protect", "sheet", "password"], code: `Sub ProtectSheet()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    ' ⚙️ CUSTOMIZE: Change "YourPassword" to your password
+    ws.Protect Password:="YourPassword"
+End Sub` },
+
+            { title: "Unprotect Sheet", desc: "Remove protection from a worksheet", category: "vba", tags: ["unprotect", "sheet", "password"], code: `Sub UnprotectSheet()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    ' ⚙️ CUSTOMIZE: Change "YourPassword" to your password
+    ws.Unprotect Password:="YourPassword"
+End Sub` },
+
+            { title: "Insert Row", desc: "Insert a new row at specific position", category: "vba", tags: ["insert", "row", "add"], code: `Sub InsertRow()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    ' ⚙️ CUSTOMIZE: Change "5" to your row number
+    ws.Rows(5).Insert
+End Sub` },
+
+            { title: "Delete Row", desc: "Delete a specific row", category: "vba", tags: ["delete", "row", "remove"], code: `Sub DeleteRow()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    ' ⚙️ CUSTOMIZE: Change "5" to row number to delete
+    ws.Rows(5).Delete
+End Sub` },
+
+            { title: "Sort Range", desc: "Sort a range of data", category: "vba", tags: ["sort", "range", "data"], code: `Sub SortRange()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    ' ⚙️ CUSTOMIZE: Change range (A1:C10), sort key (A1), and order (xlAscending)
+    ws.Range("A1:C10").Sort Key1:=ws.Range("A1"), Order1:=xlAscending, Header:=xlYes
+End Sub` },
+
+            { title: "Create New Sheet", desc: "Add a new worksheet", category: "vba", tags: ["new", "sheet", "create"], code: `Sub CreateNewSheet()
+    Dim ws As Worksheet
+    ' ⚙️ CUSTOMIZE: Change "NewSheet" to your sheet name
+    Set ws = ThisWorkbook.Sheets.Add
+    ws.Name = "NewSheet"
+End Sub` },
+
+            { title: "Delete Sheet", desc: "Delete a specific worksheet", category: "vba", tags: ["delete", "sheet", "remove"], code: `Sub DeleteSheet()
+    ' ⚙️ CUSTOMIZE: Change "SheetName" to sheet to delete
+    Application.DisplayAlerts = False
+    ThisWorkbook.Sheets("SheetName").Delete
+    Application.DisplayAlerts = True
+End Sub` },
+
+            { title: "AutoFill Range", desc: "Fill cells with a pattern or formula", category: "vba", tags: ["autofill", "fill", "copy"], code: `Sub AutoFill()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    ' ⚙️ CUSTOMIZE: Change range (A1:A10) and fill direction (xlDown, xlRight, xlUp, xlLeft)
+    ws.Range("A1").AutoFill Destination:=ws.Range("A1:A10"), Type:=xlFillDefault
+End Sub` },
+
+            { title: "Format Cell Number", desc: "Apply number format to a cell", category: "vba", tags: ["format", "number", "cell"], code: `Sub FormatCell()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    ' ⚙️ CUSTOMIZE: Change "A1" to cell, "0.00" to format
+    ws.Range("A1").NumberFormat = "0.00"
+End Sub` },
+
+            { title: "Find and Replace", desc: "Find text and replace with new text", category: "vba", tags: ["find", "replace", "search"], code: `Sub FindAndReplace()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    ' ⚙️ CUSTOMIZE: Change "OldText" and "NewText"
+    ws.Cells.Replace What:="OldText", Replacement:="NewText", LookAt:=xlPart
+End Sub` },
+
+            { title: "Loop Through Sheets", desc: "Process each worksheet in workbook", category: "vba", tags: ["loop", "sheet", "each"], code: `Sub LoopThroughSheets()
+    Dim ws As Worksheet
+    For Each ws In ThisWorkbook.Worksheets
+        ' ⚙️ CUSTOMIZE: Add your code here (e.g., msgbox ws.Name)
+        Debug.Print ws.Name
+    Next ws
+End Sub` },
+
+            // Formula Examples
+            { title: "SUM - Add Values", desc: "Add values in a range", category: "formula", tags: ["sum", "add", "total"], code: `=SUM(A1:A10)` },
+            { title: "IF - Conditional Logic", desc: "Return value based on condition", category: "formula", tags: ["if", "conditional", "logic"], code: `=IF(A1>10, "Yes", "No")` },
+            { title: "VLOOKUP - Find Value", desc: "Search for a value in the first column", category: "formula", tags: ["vlookup", "search", "find"], code: `=VLOOKUP(A1, B:C, 2, FALSE)` },
+            { title: "INDEX MATCH - Advanced Lookup", desc: "More flexible alternative to VLOOKUP", category: "formula", tags: ["index", "match", "lookup"], code: `=INDEX(B:B, MATCH(A1, A:A, 0))` },
+            { title: "COUNTIF - Count With Condition", desc: "Count cells that meet criteria", category: "formula", tags: ["count", "if", "condition"], code: `=COUNTIF(A:A, ">10")` },
+            { title: "SUMIF - Sum With Condition", desc: "Sum cells that meet criteria", category: "formula", tags: ["sum", "if", "condition"], code: `=SUMIF(A:A, ">10", B:B)` },
+            { title: "TEXT - Format Date/Number", desc: "Format a value as text with specific format", category: "formula", tags: ["text", "format", "date"], code: `=TEXT(A1, "yyyy-mm-dd")` },
+            { title: "NETWORKDAYS - Work Days", desc: "Calculate workdays between two dates", category: "formula", tags: ["date", "workdays", "network"], code: `=NETWORKDAYS(A1, B1)` },
+            { title: "CONCATENATE - Join Text", desc: "Combine text from multiple cells", category: "formula", tags: ["concat", "join", "text"], code: `=CONCATENATE(A1, " ", B1)` },
+            { title: "XLOOKUP - Modern Lookup", desc: "Newer, more powerful lookup function", category: "formula", tags: ["xlookup", "lookup", "new"], code: `=XLOOKUP(A1, B:B, C:C, "Not Found")` },
+            { title: "TODAY - Current Date", desc: "Returns today's date", category: "formula", tags: ["today", "date", "current"], code: `=TODAY()` },
+            { title: "NOW - Current Date & Time", desc: "Returns current date and time", category: "formula", tags: ["now", "date", "time", "current"], code: `=NOW()` },
+            { title: "ROUND - Round Number", desc: "Rounds a number to specified digits", category: "formula", tags: ["round", "number", "math"], code: `=ROUND(A1, 2)` },
+            { title: "AVERAGE - Average Value", desc: "Calculate average of values", category: "formula", tags: ["average", "mean", "math"], code: `=AVERAGE(A1:A10)` },
+            { title: "LEFT - Extract Left Characters", desc: "Extract characters from the left", category: "formula", tags: ["left", "text", "extract"], code: `=LEFT(A1, 5)` },
+            { title: "MID - Extract Middle Characters", desc: "Extract characters from the middle", category: "formula", tags: ["mid", "text", "extract"], code: `=MID(A1, 2, 3)` },
+            { title: "TRIM - Remove Extra Spaces", desc: "Remove extra spaces from text", category: "formula", tags: ["trim", "spaces", "text"], code: `=TRIM(A1)` }
+        ];
+
+        let selectedCodes = [];
+        let currentFilter = 'all';
+        let currentSeparator = ',';
+
+        function updateLocale() {
+            currentSeparator = document.getElementById('localeSelect').value;
+            // Re-render results to show formulas with correct separator
+            renderResults(document.getElementById('search').value);
+            renderCombineResults();
+            buildFormula();
+        }
+
+        function convertSeparator(code) {
+            // Only convert formula codes (starting with =), not VBA
+            if (code.startsWith('=')) {
+                return code.replace(/,/g, ',').replace(/;/g, ';');
+            }
+            return code;
+        }
+
+        function convertFormula(code) {
+            if (!code.startsWith('=')) return code;
+            if (currentSeparator === ',') {
+                // Convert semicolons to commas for US/UK
+                return code.replace(/;/g, ',');
+            } else {
+                // Convert commas to semicolons for EU
+                return code.replace(/,/g, ';');
+            }
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                
+                if (tabId === 'vba') {
+                    document.getElementById('section-combine').classList.add('active');
+                    renderCombineResults();
+                } else if (tabId === 'formula') {
+                    document.getElementById('section-builder').classList.add('active');
+                    document.getElementById('section-formula-combine').classList.add('active');
+                } else if (tabId === 'search') {
+                    document.getElementById('section-search').classList.add('active');
+                    renderResults('');
+                }
+            });
+        });
+
+        // Search
+        document.getElementById('search').addEventListener('input', function(e) {
+            renderResults(e.target.value);
+        });
+
+        function renderResults(searchTerm, filterOverride) {
+            const resultsDiv = document.getElementById('results');
+            const term = searchTerm.toLowerCase();
+            const filter = filterOverride || currentFilter;
+
+            let filtered = codeExamples.filter(item => {
+                if (filter !== 'all' && item.category !== filter) return false;
+                if (term) {
+                    return item.title.toLowerCase().includes(term) ||
+                           item.desc.toLowerCase().includes(term) ||
+                           item.tags.some(tag => tag.includes(term));
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">No results found.</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = filtered.map((item, index) => `
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-title">${item.title}</div>
+                    </div>
+                    <div class="result-desc">${item.desc}</div>
+                    <div style="margin-bottom: 10px;">
+                        ${item.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre>${escapeHtml(convertFormula(item.code))}</pre>
+                    </div>
+                    ${item.category === 'formula' ? `<div style="margin-top: 10px;"><button class="add-btn" onclick="addToFormulaCombine('${escapeHtml(item.code)}')">+ Add to Formula Combine</button></div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderCombineResults(filterOverride) {
+            const filter = filterOverride || currentFilter;
+            const resultsDiv = document.getElementById('combineResults');
+
+            // Only show VBA codes in combine page
+            let filtered = codeExamples.filter(item => {
+                return item.category === 'vba';
+            });
+
+            resultsDiv.innerHTML = filtered.map((item, index) => `
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-title">${item.title}</div>
+                        <button class="add-btn ${selectedCodes.includes(index) ? 'added' : ''}"
+                                onclick="toggleSelection(${index})">
+                            ${selectedCodes.includes(index) ? 'Added ✓' : 'Add to Combine'}
+                        </button>
+                    </div>
+                    <div class="result-desc">${item.desc}</div>
+                    <div style="margin-bottom: 10px;">
+                        ${item.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre>${escapeHtml(item.code)}</pre>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function toggleSelection(index) {
+            if (selectedCodes.includes(index)) {
+                selectedCodes = selectedCodes.filter(i => i !== index);
+            } else {
+                selectedCodes.push(index);
+            }
+            updateSelectedUI();
+            renderResults(document.getElementById('search').value);
+            renderCombineResults();
+        }
+
+        function updateSelectedUI() {
+            document.getElementById('selectedCount').textContent = selectedCodes.length;
+
+            const listDiv = document.getElementById('selectedList');
+            if (selectedCodes.length === 0) {
+                listDiv.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Select VBA codes to combine</p>';
+            } else {
+                listDiv.innerHTML = selectedCodes.map((index, i) => `
+                    <div class="selected-item">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <button class="reorder-btn" onclick="moveItem(${i}, -1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+                            <button class="reorder-btn" onclick="moveItem(${i}, 1)" ${i === selectedCodes.length - 1 ? 'disabled' : ''}>↓</button>
+                            <span>${i + 1}. ${codeExamples[index].title}</span>
+                        </div>
+                        <button class="remove-btn" onclick="toggleSelection(${index})">Remove</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function moveItem(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= selectedCodes.length) return;
+            [selectedCodes[index], selectedCodes[newIndex]] = [selectedCodes[newIndex], selectedCodes[index]];
+            updateSelectedUI();
+        }
+
+        function combineCodes() {
+            if (selectedCodes.length === 0) {
+                alert('Please select at least one code snippet to combine.');
+                return;
+            }
+
+            const mode = document.querySelector('input[name="combineMode"]:checked').value;
+            let combined = '';
+
+            if (mode === 'single') {
+                // Combine everything into ONE Sub - but avoid duplicate declarations
+                combined = `Sub CombinedCode()\n`;
+                combined += `    Dim ws As Worksheet\n`;
+                combined += `    Set ws = ActiveSheet\n\n`;
+
+                selectedCodes.forEach((index, i) => {
+                    // Extract just the code inside each Sub
+                    let code = codeExamples[index].code;
+                    code = code.replace(/^Sub\s+\w+\(\).*?\n/gi, ''); // Remove Sub header
+                    code = code.replace(/^End Sub\s*$/gim, ''); // Remove End Sub
+
+                    // Remove duplicate variable declarations
+                    code = code.replace(/^\s*Dim\s+ws\s+As\s+Worksheet\s*$/gim, '');
+                    code = code.replace(/^\s*Set\s+ws\s+=\s+ActiveSheet\s*$/gim, '');
+                    code = code.replace(/^\s*Dim\s+\w+\s+As\s+\w+\s*$/gim, ''); // Remove other Dim statements
+
+                    code = code.trim();
+                    if (!code) return;
+
+                    combined += `    ' ===== ${codeExamples[index].title} =====\n`;
+                    // Add proper indentation
+                    code.split('\n').forEach(line => {
+                        if (line.trim()) combined += `    ${line}\n`;
+                    });
+                    combined += '\n';
+                });
+
+                combined = combined.replace(/\n{3,}/g, '\n\n'); // Clean up extra newlines
+                combined += `End Sub`;
+
+            } else {
+                // Master Sub that calls each individual Sub
+                const subNames = [];
+
+                // First, create individual Subs
+                selectedCodes.forEach((index, i) => {
+                    const subName = `Sub_${i + 1}_${codeExamples[index].title.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                    subNames.push(subName);
+
+                    combined += `' ===== ${codeExamples[index].title} =====\n`;
+                    combined += codeExamples[index].code + '\n\n';
+                });
+
+                // Then create the Master Sub
+                combined += `' ===== MASTER SUB - Runs all in order =====\n`;
+                combined += `Sub RunAllMacros()\n`;
+                subNames.forEach(name => {
+                    combined += `    Call ${name}\n`;
+                });
+                combined += `End Sub`;
+            }
+
+            document.getElementById('combinedOutput').textContent = combined;
+            document.getElementById('combinedResult').style.display = 'block';
+        }
+
+        function copyCombined() {
+            const code = document.getElementById('combinedOutput').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Combined code copied!');
+            });
+        }
+
+        function clearSelection() {
+            selectedCodes = [];
+            updateSelectedUI();
+            renderResults(document.getElementById('search').value);
+            renderCombineResults();
+            document.getElementById('combinedResult').style.display = 'none';
+        }
+
+        function copyCode(btn) {
+            const code = btn.nextElementSibling.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Formula Builder
+        const formulaConfigs = {
+            if: { name: "IF Formula", inputs: [
+                { label: "Condition", desc: "The logic to test (e.g., A1>10)", id: "condition", placeholder: "A1>10" },
+                { label: "Value if TRUE", desc: "Value shown when condition is met", id: "trueVal", placeholder: "\"Yes\"" },
+                { label: "Value if FALSE", desc: "Value shown when condition is NOT met", id: "falseVal", placeholder: "\"No\"" }
+            ], build: (v) => `=IF(${v.condition}, ${v.trueVal}, ${v.falseVal})` },
+
+            sumif: { name: "SUMIF", inputs: [
+                { label: "Range", desc: "The range of cells to check (e.g., A:A)", id: "range", placeholder: "A:A" },
+                { label: "Criteria", desc: "What to look for (e.g., \">10\" or \"Apple\")", id: "criteria", placeholder: "\">10\"" },
+                { label: "Sum range", desc: "Optional: Range to sum (if different from range)", id: "sumRange", placeholder: "B:B" }
+            ], build: (v) => v.sumRange ? `=SUMIF(${v.range}, ${v.criteria}, ${v.sumRange})` : `=SUMIF(${v.range}, ${v.criteria})` },
+
+            vlookup: { name: "VLOOKUP", inputs: [
+                { label: "Lookup value", desc: "The value to search for (usually a cell reference)", id: "lookup", placeholder: "A1" },
+                { label: "Table array", desc: "The range containing data (e.g., D:G)", id: "table", placeholder: "D:G" },
+                { label: "Column number", desc: "Which column to return (1 = first column in range)", id: "col", placeholder: "2" },
+                { label: "Exact match?", desc: "FALSE for exact match, TRUE for approximate", id: "exact", placeholder: "FALSE" }
+            ], build: (v) => `=VLOOKUP(${v.lookup}, ${v.table}, ${v.col}, ${v.exact})` },
+
+            indexmatch: { name: "INDEX MATCH", inputs: [
+                { label: "Return column", desc: "Column containing the value to return", id: "returnCol", placeholder: "B:B" },
+                { label: "Lookup column", desc: "Column containing the lookup value", id: "lookupCol", placeholder: "A:A" },
+                { label: "Lookup value", desc: "The value you're looking for", id: "lookupVal", placeholder: "A1" }
+            ], build: (v) => `=INDEX(${v.returnCol}, MATCH(${v.lookupVal}, ${v.lookupCol}, 0))` },
+
+            concatenate: { name: "CONCATENATE", inputs: [
+                { label: "Text 1", desc: "First text or cell (use \"text\" for literal text)", id: "t1", placeholder: "A1" },
+                { label: "Text 2", desc: "Second text or cell", id: "t2", placeholder: "\" \"" },
+                { label: "Text 3", desc: "Third text or cell", id: "t3", placeholder: "B1" }
+            ], build: (v) => `=CONCATENATE(${v.t1}, ${v.t2}, ${v.t3})` },
+
+            text: { name: "TEXT", inputs: [
+                { label: "Value", desc: "The value to format (cell or number)", id: "value", placeholder: "A1" },
+                { label: "Format", desc: "Format code (e.g., \"yyyy-mm-dd\", \"0.00\", \"mm/dd/yyyy\")", id: "format", placeholder: "\"yyyy-mm-dd\"" }
+            ], build: (v) => `=TEXT(${v.value}, ${v.format})` },
+
+            networkdays: { name: "NETWORKDAYS", inputs: [
+                { label: "Start date", desc: "Start date (cell reference)", id: "start", placeholder: "A1" },
+                { label: "End date", desc: "End date (cell reference)", id: "end", placeholder: "B1" }
+            ], build: (v) => `=NETWORKDAYS(${v.start}, ${v.end})` },
+
+            xlookup: { name: "XLOOKUP", inputs: [
+                { label: "Lookup value", desc: "Value to search for", id: "lookup", placeholder: "A1" },
+                { label: "Lookup array", desc: "Column to search in", id: "lookupArr", placeholder: "D:D" },
+                { label: "Return array", desc: "Column to return value from", id: "returnArr", placeholder: "E:E" }
+            ], build: (v) => `=XLOOKUP(${v.lookup}, ${v.lookupArr}, ${v.returnArr})` },
+
+            today: { name: "TODAY", inputs: [], build: () => `=TODAY()` },
+            now: { name: "NOW", inputs: [], build: () => `=NOW()` },
+
+            round: { name: "ROUND", inputs: [
+                { label: "Number", desc: "Number or cell to round", id: "num", placeholder: "A1" },
+                { label: "Decimal places", desc: "Number of decimals (0 = whole number)", id: "digits", placeholder: "2" }
+            ], build: (v) => `=ROUND(${v.num}, ${v.digits})` },
+
+            average: { name: "AVERAGE", inputs: [
+                { label: "Range", desc: "Range of cells to average", id: "range", placeholder: "A1:A10" }
+            ], build: (v) => `=AVERAGE(${v.range})` },
+
+            left: { name: "LEFT", inputs: [
+                { label: "Text", desc: "Cell containing text", id: "text", placeholder: "A1" },
+                { label: "Characters", desc: "Number of characters to extract from left", id: "num", placeholder: "5" }
+            ], build: (v) => `=LEFT(${v.text}, ${v.num})` },
+
+            mid: { name: "MID", inputs: [
+                { label: "Text", desc: "Cell containing text", id: "text", placeholder: "A1" },
+                { label: "Start position", desc: "Position to start (1 = first character)", id: "start", placeholder: "2" },
+                { label: "Characters", desc: "Number of characters to extract", id: "num", placeholder: "3" }
+            ], build: (v) => `=MID(${v.text}, ${v.start}, ${v.num})` },
+
+            trim: { name: "TRIM", inputs: [
+                { label: "Text", desc: "Cell containing text with extra spaces", id: "text", placeholder: "A1" }
+            ], build: (v) => `=TRIM(${v.text})` },
+
+            datedif: { name: "DATEDIF", inputs: [
+                { label: "Start date", desc: "Start date (cell reference)", id: "start", placeholder: "A1" },
+                { label: "End date", desc: "End date (cell reference)", id: "end", placeholder: "B1" },
+                { label: "Unit", desc: "\"D\"=days, \"M\"=months, \"Y\"=years", id: "unit", placeholder: "\"D\"" }
+            ], build: (v) => `=DATEDIF(${v.start}, ${v.end}, ${v.unit})` },
+
+            sum: { name: "SUM", inputs: [
+                { label: "Range 1", desc: "First range to sum (e.g., A1:A10)", id: "r1", placeholder: "A1:A10" },
+                { label: "Range 2", desc: "Optional second range", id: "r2", placeholder: "B1:B10" }
+            ], build: (v) => v.r2 ? `=SUM(${v.r1}, ${v.r2})` : `=SUM(${v.r1})` },
+
+            iferror: { name: "IFERROR", inputs: [
+                { label: "Value", desc: "Value or formula to check", id: "value", placeholder: "A1" },
+                { label: "If error", desc: "Value to show if error occurs", id: "errorVal", placeholder: "\"Error\"" }
+            ], build: (v) => `=IFERROR(${v.value}, ${v.errorVal})` },
+
+            counta: { name: "COUNTA", inputs: [
+                { label: "Range", desc: "Range to count (non-empty cells)", id: "range", placeholder: "A:A" }
+            ], build: (v) => `=COUNTA(${v.range})` },
+
+            max: { name: "MAX", inputs: [
+                { label: "Range", desc: "Range to find maximum value", id: "range", placeholder: "A1:A10" }
+            ], build: (v) => `=MAX(${v.range})` },
+
+            min: { name: "MIN", inputs: [
+                { label: "Range", desc: "Range to find minimum value", id: "range", placeholder: "A1:A10" }
+            ], build: (v) => `=MIN(${v.range})` }
+        };
+
+        document.getElementById('formulaType').addEventListener('change', function() {
+            const config = formulaConfigs[this.value];
+            const inputsDiv = document.getElementById('builderInputs');
+
+            if (!config) {
+                inputsDiv.innerHTML = '<p style="color: #666; text-align: center;">Select a formula above</p>';
+                document.getElementById('builderResult').style.display = 'none';
+                return;
+            }
+
+            inputsDiv.innerHTML = config.inputs.map(inp => `
+                <div class="input-group">
+                    <label>${inp.label}</label>
+                    <div class="input-desc">${inp.desc}</div>
+                    <input type="text" id="${inp.id}" placeholder="${inp.placeholder}" oninput="buildFormula()">
+                </div>
+            `).join('');
+
+            document.getElementById('builderResult').style.display = 'none';
+        });
+
+        function buildFormula() {
+            const type = document.getElementById('formulaType').value;
+            const config = formulaConfigs[type];
+            if (!config) return;
+
+            const vals = {};
+            let allFilled = true;
+
+            config.inputs.forEach(inp => {
+                const el = document.getElementById(inp.id);
+                vals[inp.id] = el.value;
+                if (!el.value) allFilled = false;
+            });
+
+            if (allFilled) {
+                document.getElementById('formulaOutput').textContent = convertFormula(config.build(vals));
+                document.getElementById('builderResult').style.display = 'block';
+            }
+        }
+
+        function copyFormula() {
+            navigator.clipboard.writeText(document.getElementById('formulaOutput').textContent).then(() => {
+                alert('Formula copied!');
+            });
+        }
+
+        function resetBuilder() {
+            document.getElementById('formulaType').value = '';
+            document.getElementById('builderInputs').innerHTML = '<p style="color: #666; text-align: center;">Select a formula above</p>';
+            document.getElementById('builderResult').style.display = 'none';
+        }
+
+        renderResults('');
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            if (body.classList.contains('light-theme')) {
+                body.classList.remove('light-theme');
+                btn.textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.add('light-theme');
+                btn.textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeBtn').textContent = '☀️';
+            }
+        }
+
+        function handleSearch(term) {
+            const dropdown = document.getElementById('searchDropdown');
+
+            if (term.length > 0) {
+                let filtered = codeExamples.filter(item => {
+                    return item.title.toLowerCase().includes(term.toLowerCase()) ||
+                           item.desc.toLowerCase().includes(term.toLowerCase()) ||
+                           item.tags.some(tag => tag.includes(term.toLowerCase()));
+                }).slice(0, 10);
+
+                if (filtered.length > 0) {
+                    dropdown.innerHTML = filtered.map((item) => `
+                        <div class="result-card" style="margin: 5px; padding: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div class="result-title" style="font-size: 0.95rem;">${item.title}</div>
+                                    <div class="result-desc" style="font-size: 0.8rem;">${item.desc}</div>
+                                </div>
+                                <button class="copy-btn" onclick="copySearchResult('${escapeHtml(convertFormula(item.code))}')">Copy</button>
+                            </div>
+                        </div>
+                    `).join('');
+                    dropdown.classList.add('show');
+                } else {
+                    dropdown.classList.remove('show');
+                }
+            } else {
+                dropdown.classList.remove('show');
+            }
+        }
+
+        function copySearchResult(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Copied!');
+            });
+        }
+
+        loadTheme();
+
+        let selectedFormulas = [];
+
+        function combineFormulas() {
+            let combined = document.getElementById('formulaCombineInput').value;
+            if (!combined) {
+                alert('Please type a formula or add some formula snippets');
+                return;
+            }
+            // Apply locale conversion
+            combined = convertFormula(combined);
+            document.getElementById('formulaCombineOutput').textContent = combined;
+            document.getElementById('formulaCombineResult').style.display = 'block';
+        }
+
+        function copyFormulaCombine() {
+            navigator.clipboard.writeText(document.getElementById('formulaCombineOutput').textContent).then(() => {
+                alert('Formula copied!');
+            });
+        }
+
+        function clearFormulaCombine() {
+            document.getElementById('formulaCombineInput').value = '';
+            document.getElementById('formulaCombineResult').style.display = 'none';
+        }
+
+        function addToFormulaCombine(code) {
+            const input = document.getElementById('formulaCombineInput');
+            if (input.value) {
+                input.value += ', ' + code.substring(1); // Remove = and add comma
+            } else {
+                input.value = code;
+            }
+        }
+    </script>
+</body>
+</html>
